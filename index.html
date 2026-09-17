@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e1e1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>JDPB - Aprende JS</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+    /* --- ESTILOS BASE (Móvil Optimizado) --- */
+    * { box-sizing: border-box; }
+    body { 
+        font-family: 'Consolas', 'Monaco', monospace; 
+        background: #1e1e1e; 
+        color: #d4d4d4; 
+        margin: 0; 
+        padding: 0; 
+        display: flex; 
+        justify-content: center; 
+        min-height: 100vh; 
+        user-select: none; /* Evita seleccionar texto al tocar rápido */
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .container { 
+        background: #252526; 
+        width: 100%; 
+        max-width: 600px; /* Optimizado para pantallas grandes también */
+        border: none;
+        border-radius: 0;
+        text-align: center; 
+        padding: 15px; 
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        box-shadow: none;
+    }
+
+    h1 { 
+        color: #569cd6; 
+        margin: 10px 0 5px; 
+        font-size: 26px; 
+        letter-spacing: 1px;
+    }
+
+    .subtitle { 
+        color: #888; 
+        font-size: 14px; 
+        margin-bottom: 20px; 
+    }
+
+    /* --- PANTALLAS --- */
+    #start-screen, #game-screen, #end-screen, #levels-screen { display: none; }
+    .active { display: block !important; }
+
+    /* --- ELEMENTOS DEL JUEGO --- */
+    .topic-badge {
+        display: inline-block;
+        background: #6f42c1;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+        margin: 5px 0 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .explanation-box {
+        background: #0e1117;
+        padding: 12px;
+        border-left: 4px solid #4ec9b0;
+        text-align: left;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        color: #d4d4d4;
+        min-height: 50px;
+        font-style: italic;
+    }
+
+    .code-block { 
+        background: #0e1117; 
+        padding: 12px; 
+        border-left: 4px solid #ce9178; 
+        text-align: left; 
+        font-size: 14px; 
+        line-height: 1.6; 
+        margin-bottom: 12px; 
+        white-space: pre; 
+        overflow-x: auto; 
+        color: #9cdcfe; 
+        border-radius: 6px; 
+        font-family: 'Consolas', monospace;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+    
+    /* Botones grandes para dedos */
+    button { 
+        padding: 16px; 
+        background: #0e639c; 
+        color: #fff; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 16px; 
+        text-align: left; 
+        font-family: inherit; 
+        transition: transform 0.1s, background 0.2s; 
+        width: 100%;
+        min-height: 48px; /* Altura mínima táctil */
+    }
+
+    button:active { transform: scale(0.98); }
+    button:hover { background: #1177bb; }
+    button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    
+    .btn-skip { background: #b58900; text-align: center; }
+    .btn-skip:hover { background: #d69e2e; }
+    
+    .btn-next { 
+        background: #2ea043; 
+        text-align: center; 
+        font-weight: bold; 
+        font-size: 18px; 
+        margin-top: 10px; 
+        display: none; 
+        min-height: 50px;
+    }
+    .btn-next:hover { background: #3fb950; }
+
+    /* --- ESTADÍSTICAS --- */
+    .stats { 
+        display: flex; 
+        justify-content: space-between; 
+        margin-top: 15px; 
+        padding: 10px; 
+        background: #1e1e1e; 
+        border-radius: 6px; 
+        font-size: 13px; 
+        color: #4ec9b0; 
+        flex-wrap: wrap; 
+        gap: 5px; 
+    }
+    .stats span { text-align: center; flex: 1; }
+
+    /* --- MENSAJES --- */
+    #message { margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; min-height: 24px; font-size: 14px; }
+    .success { background: #0e3a2b; color: #4ec9b0; border: 1px solid #4ec9b0; }
+    .error { background: #3a0e0e; color: #f44747; border: 1px solid #f44747; }
+
+    /* --- CONTROLES FIJOS ABAJO --- */
+    .controls { 
+        margin-top: auto; 
+        padding-top: 15px; 
+        display: flex; 
+        gap: 8px; 
+        flex-wrap: wrap; 
+    }
+    .btn-small { 
+        flex: 1; 
+        min-width: 120px; 
+        font-size: 14px; 
+        padding: 14px; 
+        text-align: center; 
+        min-height: 48px;
+    }
+    .btn-save { background: #2ea043; }
+    .btn-home { background: #6f42c1; }
+    .btn-levels { background: #0e639c; }
+
+    /* --- BARRA DE PROGRESO --- */
+    .progress-bar { 
+        width: 100%; 
+        height: 8px; 
+        background: #333; 
+        border-radius: 4px; 
+        margin: 10px 0; 
+        overflow: hidden; 
+    }
+    .progress-fill { 
+        height: 100%; 
+        background: #4ec9b0; 
+        width: 0%; 
+        transition: width .3s; 
+    }
+
+    /* --- MAPA DE NIVELES --- */
+    .theme-section { margin-bottom: 12px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    .theme-header { background: #2d2d30; padding: 8px 10px; font-size: 13px; font-weight: bold; color: #6f42c1; text-align: left; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+    .theme-meta { font-weight: normal; font-size: 11px; color: #888; }
+    .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 5px; padding: 8px; background: #0e1117; max-height: 250px; overflow-y: auto; }
+    .lvl-btn { 
+        padding: 8px 4px; 
+        font-size: 12px; 
+        text-align: center; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        border: none; 
+        color: #fff; 
+        min-height: 40px;
+    }
+    .lvl-done { background: #2ea043; }
+    .lvl-fail { background: #b62324; }
+    .lvl-todo { background: #3c3c3c; }
+    .lvl-current { outline: 2px solid #569cd6; }
+    
+    .legend { display: flex; gap: 12px; justify-content: center; font-size: 11px; color: #888; margin-bottom: 10px; flex-wrap: wrap; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+    /* --- PANTALLA FINAL --- */
+    .final-score { font-size: 1.5em; color: #d4d4d4; margin: 15px 0; }
+    .grade { font-size: 3.5em; color: #569cd6; font-weight: bold; line-height: 1; margin: 10px 0; }
+    .credits { font-size: .75em; color: #666; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- PANTALLA DE INICIO -->
+    <div id="start-screen" class="active">
+        <h1>JDPB</h1>
+        <p class="subtitle">Aprende JavaScript jugando</p>
+        <button onclick="startGame()" style="width:100%;font-size:18px;text-align:center;min-height:50px;">▶ JUGAR</button>
+        <div class="controls">
+            <button class="btn-small btn-levels" onclick="showLevels()">📋 Niveles</button>
+            <button class="btn-small btn-save" onclick="resetAll()">🗑 Reiniciar</button>
+        </div>
+        <div class="credits">v8.0 - C-E-E-I</div>
+    </div>
+
+    <!-- PANTALLA DEL JUEGO -->
+    <div id="game-screen">
+        <h1>JDPB</h1>
+        <div class="topic-badge" id="topicDisplay">Tema: ...</div>
+        <div class="explanation-box" id="explanationDisplay"></div>
+        
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="code-block" id="codeDisplay"></div>
+        <div class="options" id="optionsContainer"></div>
+        <button class="btn-skip" onclick="skipLevel()">⏭ Saltar nivel (-0.25)</button>
+        <button id="btnNext" class="btn-next" onclick="nextLevel()">Siguiente ➡</button>
+        
+        <div class="stats">
+            <span>Nivel: <b id="level">1</b>/<b id="total">200</b></span>
+            <span>Calif: <b id="score">10.0</b></span>
+            <span>Aciertos: <b id="hits">0</b></span>
+            <span>Fallos: <b id="fails">0</b></span>
+        </div>
+        <div id="message"></div>
+        
+        <div class="controls">
+            <button class="btn-small btn-levels" onclick="showLevels()">📋 Mapa</button>
+            <button class="btn-small btn-save" onclick="saveGame(true)">💾 Guardar</button>
+            <button class="btn-small btn-home" onclick="goHome()">🏠 Menú</button>
+        </div>
+    </div>
+
+    <!-- MAPA DE NIVELES -->
+    <div id="levels-screen">
+        <h1> Niveles </h1>
+        <div class="legend">
+            <span><i class="dot" style="background:#2ea043"></i>Ok</span>
+            <span><i class="dot" style="background:#b62324"></i>Falló</span>
+            <span><i class="dot" style="background:#3c3c3c"></i>⏳</span>
+        </div>
+        <div id="themeGrid" style="max-height:60vh;overflow-y:auto;padding-right:4px;"></div>
+        <div class="stats">
+            <span>Calif: <span id="gridGrade">10.0</span></span>
+            <span>Fallos: <span id="gridFails">0</span></span>
+        </div>
+        <button onclick="showScreen('game-screen')" style="width:100%;text-align:center;">Volver</button>
+    </div>
+
+    <!-- PANTALLA FINAL -->
+    <div id="end-screen">
+        <h1>Resultados</h1>
+        <div class="final-score">Calificación: <span id="finalPoints">10.0</span></div>
+        <div class="grade"><span id="finalGrade">10.0</span></div>
+        <p id="finalMessage" style="margin:15px 0;font-size:1.1em"></p>
+        <button onclick="resetAndReload()" style="width:100%;text-align:center;">Reiniciar Juego</button>
+    </div>
+</div>
+
+<script>
+/* ===== CONFIGURACIÓN ===== */
+const TOTAL_LEVELS = 200;
+const MAX_POINTS = 10.0;
+const PENALTY_ERROR = 0.5;
+const PENALTY_SKIP = 0.25;
+const SAVE_KEY = 'jdpb_save_v8';
+
+/* ===== UTILIDADES ===== */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function fmt(n) { return n.toFixed(2).replace(/\.?0+$/, '').replace(/\.$/, '.0'); }
+
+function makeOptions(correctVal, wrongVals) {
+    const correctStr = String(correctVal);
+    const opts = shuffle([correctStr].concat(wrongVals.map(String)));
+    return { options: opts, correct: opts.indexOf(correctStr) + 1 };
+}
+
+/* ===== EXPLICACIONES ===== */
+const topicInfo = [
+    { name: "Variables y Sumas", desc: "Una variable guarda un valor (let x = 5). El operador + suma dos números. console.log() imprime el resultado." },
+    { name: "Resta y Operaciones", desc: "El operador - resta valores. Reutiliza variables: total = total - 7." },
+    { name: "Multiplicación", desc: "El asterisco * multiplica. Ejemplo: 6 * 7 = 42." },
+    { name: "Cadenas (Strings)", desc: "Texto entre comillas: \"Hola\". Al imprimirlo aparece sin comillas." },
+    { name: "Condicionales (If)", desc: "if (condición) ejecuta el código SOLO si es verdadero." },
+    { name: "Bucles (For)", desc: "for repite código. let i=1 inicia, i<=n termina, i++ avanza." },
+    { name: "Arrays (Listas)", desc: "Lista de valores: [10, 20, 30]. Acceso por índice: nums[0] vale 10." },
+    { name: "Concatenación", desc: "Unir textos con +. \"Ana\" + \" tiene \" + 18 = \"Ana tiene 18\"." },
+    { name: "Errores de Sintaxis", desc: "JavaScript usa ; para terminar instrucciones. Si falta, hay error." },
+    { name: "Comparaciones (==)", desc: "== compara valores. Devuelve true o false." }
+];
+
+/* ===== GENERADOR DE NIVELES ===== */
+function buildLevels() {
+    const levels = [];
+    const words = ['Hola', 'Mundo', 'Code', 'JS', 'Web', 'Escuela', 'Perro', 'Gato'];
+
+    for (let i = 0; i < TOTAL_LEVELS; i++) {
+        const type = i % 10;
+        const topic = topicInfo[type].name;
+        let level = {};
+
+        if (type === 0) { // Suma
+            const a = rnd(1, 50), b = rnd(1, 50), ans = a + b;
+            const o = makeOptions(ans, [ans + 1, ans - 1]);
+            level = { code: 'let x = ' + a + ';\nlet y = ' + b + ';\nconsole.log(x + y);', options: o.options, correct: o.correct, explanation: a + ' + ' + b + ' = ' + ans, topic: topic };
+        } else if (type === 1) { // Resta
+            const a = rnd(10, 50), b = rnd(1, 9), ans = a - b;
+            const o = makeOptions(ans, [ans + 2, ans - 2]);
+            level = { code: 'let total = ' + a + ';\ntotal = total - ' + b + ';\nconsole.log(total);', options: o.options, correct: o.correct, explanation: a + ' - ' + b + ' = ' + ans, topic: topic };
+        } else if (type === 2) { // Multiplicación
+            const a = rnd(2, 9), b = rnd(2, 9), ans = a * b;
+            const o = makeOptions(ans, [ans + a, ans - b]);
+            level = { code: 'console.log(' + a + ' * ' + b + ');', options: o.options, correct: o.correct, explanation: a + ' × ' + b + ' = ' + ans, topic: topic };
+        } else if (type === 3) { // Strings
+            const w = words[rnd(0, words.length - 1)];
+            const correctStr = '"' + w + '"';
+            const opts = shuffle([correctStr, "'" + w + "'", 'undefined']);
+            level = { code: 'let msg = "' + w + '";\nconsole.log(msg);', options: opts, correct: opts.indexOf(correctStr) + 1, explanation: 'Imprime "' + w + '"', topic: topic };
+        } else if (type === 4) { // If
+            const a = rnd(1, 10), b = rnd(11, 20);
+            const opts = shuffle(['No imprime nada', 'Imprime Mayor', 'Error']);
+            level = { code: 'let a = ' + a + ';\nlet b = ' + b + ';\nif (a > b) { console.log("Mayor"); }', options: opts, correct: opts.indexOf('No imprime nada') + 1, explanation: a + ' NO es mayor que ' + b, topic: topic };
+        } else if (type === 5) { // For
+            const n = rnd(3, 7);
+            const opts = shuffle(['Del 1 al ' + n, 'Del 0 al ' + n, 'Del 1 al ' + (n - 1)]);
+            level = { code: 'for (let i = 1; i <= ' + n + '; i++) { console.log(i); }', options: opts, correct: opts.indexOf('Del 1 al ' + n) + 1, explanation: 'Cuenta del 1 al ' + n, topic: topic };
+        } else if (type === 6) { // Arrays
+            const arr = [rnd(1, 9), rnd(1, 9), rnd(1, 9)], idx = rnd(0, 2);
+            const ans = arr[idx];
+            const others = [arr[(idx + 1) % 3], arr[(idx + 2) % 3]];
+            const o = makeOptions(ans, others);
+            level = { code: 'let nums = [' + arr.join(', ') + '];\nconsole.log(nums[' + idx + ']);', options: o.options, correct: o.correct, explanation: 'El índice ' + idx + ' vale ' + ans, topic: topic };
+        } else if (type === 7) { // Concat
+            const n = 'Ana', e = rnd(15, 20);
+            const correctStr = n + ' tiene ' + e;
+            const opts = shuffle([correctStr, n + '' + e, 'NaN']);
+            level = { code: 'let nombre = "' + n + '";\nlet edad = ' + e + ';\nconsole.log(nombre + " tiene " + edad);', options: opts, correct: opts.indexOf(correctStr) + 1, explanation: 'Une texto y número', topic: topic };
+        } else if (type === 8) { // Error
+            const v = rnd(1, 50);
+            const opts = shuffle(['Falta ;', 'Todo correcto', 'Falta let']);
+            level = { code: 'let numero = ' + v + '\nconsole.log(numero);', options: opts, correct: opts.indexOf('Falta ;') + 1, explanation: 'Falta ";" en la línea 1', topic: topic };
+        } else { // Comparación
+            const v = rnd(5, 15);
+            const opts = shuffle(['Imprime Igual', 'No imprime', 'Error']);
+            level = { code: 'let x = ' + v + ';\nif (x == ' + v + ') { console.log("Igual"); }', options: opts, correct: opts.indexOf('Imprime Igual') + 1, explanation: 'x es igual a ' + v, topic: topic };
+        }
+        levels.push(level);
+    }
+    return levels;
+}
+
+/* ===== ESTADO ===== */
+let levels = [];
+let currentLevel = 0;
+let score = MAX_POINTS;
+let hits = 0;
+let fails = 0;
+let results = new Array(TOTAL_LEVELS).fill(null);
+let autoNextTimeout = null;
+
+/* ===== GUARDADO ===== */
+function saveGame(showAlert) {
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ currentLevel, score, hits, fails, results }));
+        if (showAlert) alert(' Guardado');
+    } catch (e) { console.error(e); }
+}
+function loadProgress() {
+    const s = localStorage.getItem(SAVE_KEY);
+    if (s) {
+        const d = JSON.parse(s);
+        currentLevel = d.currentLevel || 0;
+        score = d.score ?? MAX_POINTS;
+        hits = d.hits || 0;
+        fails = d.fails || 0;
+        results = d.results || new Array(TOTAL_LEVELS).fill(null);
+    } else { resetState(); }
+}
+function resetState() { currentLevel = 0; score = MAX_POINTS; hits = 0; fails = 0; results = new Array(TOTAL_LEVELS).fill(null); }
+function resetAll() { if (confirm('¿Borrar TODO?')) { localStorage.removeItem(SAVE_KEY); location.reload(); } }
+function resetAndReload() { localStorage.removeItem(SAVE_KEY); location.reload(); }
+
+/* ===== NAVEGACIÓN ===== */
+function showScreen(id) {
+    ['start-screen', 'game-screen', 'end-screen', 'levels-screen'].forEach(s => document.getElementById(s).classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+function startGame() { loadProgress(); if (currentLevel >= TOTAL_LEVELS) currentLevel = TOTAL_LEVELS - 1; showScreen('game-screen'); renderLevel(); }
+function goHome() { saveGame(); showScreen('start-screen'); }
+
+/* ===== RENDERIZADO ===== */
+function renderLevel() {
+    document.getElementById('total').textContent = TOTAL_LEVELS;
+    const lv = levels[currentLevel];
+    
+    document.getElementById('topicDisplay').textContent = "Tema: " + lv.topic;
+    document.getElementById('explanationDisplay').textContent = lv.topic + ": " + lv.explanation;
+
+    document.getElementById('codeDisplay').textContent = lv.code;
+    document.getElementById('level').textContent = currentLevel + 1;
+    document.getElementById('score').textContent = fmt(score);
+    document.getElementById('hits').textContent = hits;
+    document.getElementById('fails').textContent = fails;
+    document.getElementById('progressFill').style.width = ((currentLevel) / TOTAL_LEVELS * 100) + '%';
+    
+    document.getElementById('btnNext').style.display = 'none';
+    document.getElementById('btnNext').disabled = false;
+
+    const c = document.getElementById('optionsContainer');
+    c.innerHTML = '';
+    lv.options.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.textContent = opt;
+        b.onclick = () => checkAnswer(i + 1);
+        c.appendChild(b);
+    });
+    document.getElementById('message').textContent = '';
+    document.getElementById('message').className = '';
+}
+
+function checkAnswer(choice) {
+    const lv = levels[currentLevel];
+    const msg = document.getElementById('message');
+    const btns = document.querySelectorAll('#optionsContainer button');
+
+    if (results[currentLevel] === null) {
+        if (choice === lv.correct) {
+            hits++;
+            results[currentLevel] = 'ok';
+            msg.textContent = '✅ ' + lv.explanation;
+            msg.className = 'success';
+            document.getElementById('score').textContent = fmt(score);
+            document.getElementById('hits').textContent = hits;
+            
+            btns.forEach(b => b.disabled = true);
+            
+            const nextBtn = document.getElementById('btnNext');
+            nextBtn.style.display = 'block';
+            nextBtn.disabled = false;
+            
+            clearTimeout(autoNextTimeout);
+            autoNextTimeout = setTimeout(() => {
+                nextLevel();
+            }, 2000);
+
+        } else {
+            score = Math.max(0, score - PENALTY_ERROR);
+            fails++;
+            results[currentLevel] = 'fail';
+            msg.textContent = '❌ (-' + PENALTY_ERROR.toFixed(2) + ') ' + lv.explanation;
+            msg.className = 'error';
+            document.getElementById('score').textContent = fmt(score);
+            document.getElementById('fails').textContent = fails;
+            
+            const nextBtn = document.getElementById('btnNext');
+            nextBtn.style.display = 'block';
+            nextBtn.disabled = false;
+            
+            btns.forEach(b => b.disabled = true);
+        }
+        saveGame();
+    } else {
+        msg.textContent = 'Ya respondiste.';
+        msg.className = 'error';
+    }
+}
+
+function nextLevel() {
+    clearTimeout(autoNextTimeout);
+    currentLevel++;
+    if (currentLevel >= TOTAL_LEVELS) {
+        endGame();
+    } else {
+        renderLevel();
+        saveGame();
+    }
+}
+
+function skipLevel() {
+    score = Math.max(0, score - PENALTY_SKIP);
+    fails++;
+    document.getElementById('score').textContent = fmt(score);
+    document.getElementById('fails').textContent = fails;
+    const msg = document.getElementById('message');
+    msg.textContent = '⏭ Saltado (-' + PENALTY_SKIP.toFixed(2) + ')';
+    msg.className = 'error';
+    if (results[currentLevel] === null) results[currentLevel] = 'skip';
+    currentLevel++;
+    if (currentLevel >= TOTAL_LEVELS) endGame();
+    else { renderLevel(); saveGame(); }
+}
+
+/* ===== MAPA ===== */
+function showLevels() {
+    const grid = document.getElementById('themeGrid');
+    grid.innerHTML = '';
+    const levelsPerTheme = TOTAL_LEVELS / topicInfo.length;
+    
+    topicInfo.forEach((theme, themeIdx) => {
+        const startIdx = themeIdx * levelsPerTheme;
+        const endIdx = startIdx + levelsPerTheme;
+        
+        const section = document.createElement('div');
+        section.className = 'theme-section';
+        
+        const header = document.createElement('div');
+        header.className = 'theme-header';
+        header.innerHTML = `<span>${theme.name}</span><span class="theme-meta">${startIdx+1}-${endIdx}</span>`;
+        
+        const body = document.createElement('div');
+        body.className = 'level-grid';
+        
+        for (let i = startIdx; i < endIdx; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i + 1;
+            btn.className = 'lvl-btn';
+            if (i === currentLevel) btn.classList.add('lvl-current');
+            else if (results[i] === 'ok') btn.classList.add('lvl-done');
+            else if (results[i] === 'fail' || results[i] === 'skip') btn.classList.add('lvl-fail');
+            else btn.classList.add('lvl-todo');
+            btn.onclick = () => { currentLevel = i; showScreen('game-screen'); renderLevel(); };
+            body.appendChild(btn);
+        }
+        
+        section.appendChild(header);
+        section.appendChild(body);
+        grid.appendChild(section);
+    });
+    
+    document.getElementById('gridGrade').textContent = fmt(score);
+    document.getElementById('gridFails').textContent = fails;
+    showScreen('levels-screen');
+}
+
+/* ===== FIN ===== */
+function endGame() {
+    showScreen('end-screen');
+    document.getElementById('finalPoints').textContent = fmt(score);
+    document.getElementById('finalGrade').textContent = fmt(score);
+    const msg = document.getElementById('finalMessage');
+    
+    if (score >= 6) { msg.textContent = "¡Felicidades! Aprobaste."; msg.style.color = "#4ec9b0"; }
+    else if (score >= 4) { msg.textContent = "Aprobado, pero practica más."; msg.style.color = "#d4d4d4"; }
+    else { msg.textContent = "Reprobado. Inténtalo de nuevo."; msg.style.color = "#f44747"; }
+    saveGame();
+}
+
+levels = buildLevels();
+</script>
+</body>
+</html>
