@@ -1,0 +1,27 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "JDPB-Aprende JS",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "JDPB-Aprende JS",
+  "start_url": "/",
+  "theme_color": "#1e1e1e",
+  "icons": [
+    {
+      "src": "https://rdelossantoshernandez85-sketch.github.io/jdpb-game/favicon.png",
+      "type": "image/png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "id": "JDPB-Aprende JS",
+  "description": "es una app para aprender a programar"
+}
