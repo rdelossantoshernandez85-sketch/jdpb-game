@@ -14,54 +14,90 @@
     overflow: hidden; touch-action: none;
   }
   #wrap { position: relative; width: 100%; max-width: 820px; }
+  
   canvas {
     image-rendering: pixelated; image-rendering: crisp-edges;
     background: #fff; border-bottom: 2px solid #535353;
     display: block; width: 100%; height: auto;
+    z-index: 1;
   }
+  
   .overlay {
     position: absolute; inset: 0; background: rgba(255,255,255,.96);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 14px; text-align: center; padding: 16px;
+    z-index: 100;
   }
+  
   h1 { font-size: 26px; letter-spacing: 3px; }
   h2 { font-size: 18px; letter-spacing: 2px; }
+  
   .btn {
-    font-family: inherit; font-size: 15px; color: #535353; background: #fff;
-    border: 3px solid #535353; padding: 12px 22px; cursor: pointer;
-    min-width: 220px; box-shadow: 4px 4px 0 #c9c9c9;
+    font-family: inherit; font-size: 14px; color: #535353; background: #fff;
+    border: 3px solid #535353; padding: 10px 20px; cursor: pointer;
+    min-width: 180px; box-shadow: 3px 3px 0 #c9c9c9;
+    pointer-events: auto;
+    z-index: 101;
   }
-  .btn:active { transform: translate(3px,3px); box-shadow: none; }
+  .btn:active { transform: translate(2px,2px); box-shadow: none; }
+  
   .fila { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-  .mini { font-size: 11px; color: #8a8a8a; max-width: 420px; line-height: 1.5; }
+  .mini { font-size: 10px; color: #8a8a8a; max-width: 420px; line-height: 1.4; }
   .oculto { display: none !important; }
+  
   .card {
     border: 2px solid #535353; padding: 8px; background: #fff;
-    cursor: pointer; text-align: left; min-width: 140px;
+    cursor: pointer; text-align: left; min-width: 130px;
+    pointer-events: auto;
+    display: inline-block;
   }
-  .card.locked { opacity: .6; }
-  .card.selected { background: #535353; color: #fff; }
-  .card span { display: block; font-size: 10px; color: #666; }
+  .card.locked { opacity: .5; } /* Más oscuro para bloqueados */
+  .card.selected { background: #535353; color: #fff; border-color: #fff; }
+  .card span { display: block; font-size: 9px; color: #666; }
   .card.selected span { color: #ccc; }
-  #tactil { position: absolute; inset: 0; display: none; pointer-events: none; }
-  .pad { position: absolute; bottom: 12px; display: flex; gap: 12px; pointer-events: auto; }
-  .pad.izq { left: 12px; }
-  .pad.der { right: 12px; }
-  .tbtn {
-    width: 62px; height: 62px; border: 3px solid #535353;
-    background: rgba(255,255,255,.75); color: #535353; font-size: 22px;
-    font-family: inherit; display: flex; align-items: center; justify-content: center;
-    user-select: none;
+  
+  #ui-top {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none;
+    z-index: 50;
   }
-  .tbtn.activo { background: #535353; color: #fff; }
-  #monedas { position: absolute; top: 8px; left: 10px; font-size: 14px; }
+  #monedas {
+    background: #fff; border: 2px solid #535353; padding: 4px 8px;
+    font-size: 12px; font-weight: bold; pointer-events: auto;
+  }
+  #nitro-container {
+    position: relative; width: 80px; text-align: right;
+    pointer-events: none;
+  }
+  #nitro-label {
+    font-size: 9px; font-weight: bold; margin-bottom: 2px;
+    text-shadow: 0 0 2px #fff;
+  }
   #nitro-bar {
-    position: absolute; bottom: 80px; left: 10px; width: 100px; height: 10px;
-    background: #ddd; border: 2px solid #535353; overflow: hidden;
+    width: 100%; height: 6px; background: #ddd; border: 1px solid #535353; overflow: hidden;
   }
   #nitro-fill { height: 100%; background: #ff9800; width: 0%; transition: width 0.1s; }
-  #nitro-label {
-    position: absolute; bottom: 92px; left: 10px; font-size: 10px; font-weight: bold;
+
+  #tactil { 
+    position: absolute; inset: 0; display: none; 
+    pointer-events: none; 
+    z-index: 60;
+  }
+  .pad { position: absolute; bottom: 10px; display: flex; gap: 8px; pointer-events: none; }
+  .pad.izq { left: 10px; }
+  .pad.der { right: 10px; }
+  .tbtn {
+    width: 50px; height: 50px; border: 2px solid #535353;
+    background: rgba(255,255,255,.85); color: #535353; font-size: 20px;
+    font-family: inherit; display: flex; align-items: center; justify-content: center;
+    user-select: none;
+    pointer-events: auto;
+  }
+  .tbtn.activo { background: #535353; color: #fff; }
+  
+  .btn-save {
+    margin-top: 10px; font-size: 12px; padding: 8px 16px; min-width: 140px;
   }
 </style>
 </head>
@@ -69,26 +105,35 @@
 
 <div id="wrap">
   <canvas id="game" width="800" height="400"></canvas>
-  <div id="monedas" class="oculto">TARJETAS: <span id="cards">0</span></div>
-  <div id="nitro-label">NITRO</div>
-  <div id="nitro-bar"><div id="nitro-fill"></div></div>
+  
+  <div id="ui-top">
+    <div id="monedas">TARJETAS: <span id="cards">0</span></div>
+    <div id="nitro-container">
+      <div id="nitro-label">NITRO</div>
+      <div id="nitro-bar"><div id="nitro-fill"></div></div>
+    </div>
+  </div>
 
-  <!-- MENÚ -->
+  <!-- MENÚ PRINCIPAL -->
   <div id="menu" class="overlay">
     <h1>SKY COMBAT</h1>
     <button class="btn" onclick="irJuego()">▶ JUGAR</button>
-    <button class="btn" onclick="abrirTienda()">🃏 TIENDA</button>
-    <p class="mini">↑/W subir · ↓/S bajar · X o CLICK disparar<br>Agarra tarjetas, nitro y escudos en el aire! (N para nitro)</p>
+    <button class="btn" onclick="abrirGaraje()">⚙️ GARAJE</button>
+    <button class="btn btn-save" onclick="guardarPartida()">💾 GUARDAR PARTIDA</button>
+    <p class="mini">↑/W subir · ↓/S bajar · X o CLICK disparar<br>En celular usa los botones en pantalla<br>(N para nitro en PC)</p>
+    <p class="mini" style="margin-top:10px; color:green;">¡Los aviones y armas se desbloquean automáticamente al ganar tarjetas!</p>
   </div>
 
-  <!-- TIENDA -->
-  <div id="tienda" class="overlay oculto">
-    <h2>TUS TARJETAS: <span id="cardsShop">0</span></h2>
-    <div style="font-size:13px;">AVIONES</div>
+  <!-- GARAJE (CONFIGURACIÓN) -->
+  <div id="garaje" class="overlay oculto">
+    <h2>GARAJE</h2>
+    <div style="font-size:13px; margin-bottom:5px;">TU AVIÓN:</div>
     <div class="fila" id="listaAviones"></div>
-    <div style="font-size:13px;margin-top:6px;">ARMAS</div>
+    
+    <div style="font-size:13px; margin-top:10px; margin-bottom:5px;">TU ARMA:</div>
     <div class="fila" id="listaArmas"></div>
-    <button class="btn" onclick="cerrarTienda()">VOLVER</button>
+    
+    <button class="btn" onclick="cerrarGaraje()">VOLVER AL MENÚ</button>
   </div>
 
   <!-- GAME OVER -->
@@ -99,15 +144,16 @@
     <button class="btn" onclick="irMenu()">MENÚ</button>
   </div>
 
-  <!-- CONTROLES TÁCTILES -->
   <div id="tactil">
     <div class="pad izq">
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
         <div class="tbtn" data-k="up">▲</div>
         <div class="tbtn" data-k="down">▼</div>
       </div>
     </div>
-    <div class="pad der"><div class="tbtn" data-k="fire">✸</div></div>
+    <div class="pad der">
+      <div class="tbtn" data-k="fire">✸</div>
+    </div>
   </div>
 </div>
 
@@ -119,19 +165,23 @@ const esTactil = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const SUELO = 340;
 const VEL_VERT = 4.8;
 
-/* ---------- GUARDADO (Inicialización) ---------- */
-// Cargar datos guardados o iniciar desde cero
+/* ---------- GUARDADO ---------- */
 let guardado = { tarjetas:0, avion:'caza', arma:'simple', aviones:['caza'], armas:['simple'] };
 try { const g = localStorage.getItem('skycombat'); if (g) guardado = JSON.parse(g); } catch(e){}
 
-// FUNCIÓN CRÍTICA: Reinicia a lo básico si el usuario quiere empezar de nuevo
-// Pero por defecto, mantiene lo que tenga guardado.
-// Si quieres FORZAR siempre que empiece con lo básico, descomenta la siguiente línea:
-// if (confirm("¿Quieres reiniciar tu progreso y empezar con el avión básico?")) { guardado = { tarjetas:0, avion:'caza', arma:'simple', aviones:['caza'], armas:['simple'] }; guardar(); }
+function guardarPartida() {
+  guardado.tarjetas = guardado.tarjetas; // Asegurar que se guarda lo actual
+  guardar();
+  alert('¡Progreso guardado correctamente!');
+}
 
-function guardar(){ try{ localStorage.setItem('skycombat', JSON.stringify(guardado)); }catch(e){} }
+function guardar(){ 
+  try{ 
+    localStorage.setItem('skycombat', JSON.stringify(guardado)); 
+  }catch(e){} 
+}
 
-/* ---------- ITEMS ---------- */
+/* ---------- ITEMS Y DATOS ---------- */
 const AVIONES = {
   caza:    { nombre:'CAZA',      precio:0,  desc:'Equilibrado' },
   cazon:   { nombre:'CAZA NOCT', precio:15, desc:'Más ágil' },
@@ -152,7 +202,9 @@ let nitro=0, nitroMax=100, nitroActive=false, nitroTimer=0;
 let items = [];
 
 function iniciar() {
-  // Asegurarse de que el jugador tenga al menos el avión y arma básicos
+  // Desbloquear automáticamente lo que puedas pagar con tus tarjetas actuales
+  desbloquearTodo();
+
   if (!guardado.aviones.includes(guardado.avion)) guardado.avion = 'caza';
   if (!guardado.armas.includes(guardado.arma)) guardado.arma = 'simple';
 
@@ -168,6 +220,21 @@ function iniciar() {
   puntos=0; velocidad=6; juegoActivo=true; gameover=false;
   frame=0; ganadas=0; enfriamiento=0;
   actualizarMonedas();
+}
+
+function desbloquearTodo() {
+  // Desbloquear aviones si tienes suficientes tarjetas
+  for (let key in AVIONES) {
+    if (guardado.tarjetas >= AVIONES[key].precio && !guardado.aviones.includes(key)) {
+      guardado.aviones.push(key);
+    }
+  }
+  // Desbloquear armas si tienes suficientes tarjetas
+  for (let key in ARMAS) {
+    if (guardado.tarjetas >= ARMAS[key].precio && !guardado.armas.includes(key)) {
+      guardado.armas.push(key);
+    }
+  }
 }
 
 /* ---------- CONTROLES ---------- */
@@ -513,101 +580,104 @@ function morir() {
   document.getElementById('fin').classList.remove('oculto');
 }
 
-/* ================= TIENDA Y MENÚ ================= */
+/* ================= MENÚ Y GARAJE ================= */
 function actualizarMonedas() {
   document.getElementById('cards').textContent = guardado.tarjetas;
-  document.getElementById('cardsShop').textContent = guardado.tarjetas;
 }
 
 function irJuego() {
   document.getElementById('menu').classList.add('oculto');
-  document.getElementById('tienda').classList.add('oculto');
+  document.getElementById('garaje').classList.add('oculto');
   document.getElementById('fin').classList.add('oculto');
   iniciar();
   loop();
 }
 
 function irMenu() {
-  document.getElementById('menu').classList.remove('oculto');
-  document.getElementById('tienda').classList.add('oculto');
   document.getElementById('fin').classList.add('oculto');
-}
-
-function abrirTienda() {
-  document.getElementById('menu').classList.add('oculto');
-  document.getElementById('tienda').classList.remove('oculto');
-  actualizarMonedas();
-  renderizarTienda();
-}
-
-function cerrarTienda() {
-  document.getElementById('tienda').classList.add('oculto');
   document.getElementById('menu').classList.remove('oculto');
-  actualizarMonedas();
 }
 
-function renderizarTienda() {
+function abrirGaraje() {
+  document.getElementById('menu').classList.add('oculto');
+  document.getElementById('garaje').classList.remove('oculto');
+  renderizarGaraje();
+}
+
+function cerrarGaraje() {
+  document.getElementById('garaje').classList.add('oculto');
+  document.getElementById('menu').classList.remove('oculto');
+}
+
+function renderizarGaraje() {
   const listaAviones = document.getElementById('listaAviones');
   const listaArmas = document.getElementById('listaArmas');
   listaAviones.innerHTML = '';
   listaArmas.innerHTML = '';
 
-  Object.keys(AVIONES).forEach(key => {
+  // Renderizar Aviones
+  for (let key in AVIONES) {
     const item = AVIONES[key];
     const btn = document.createElement('div');
     btn.className = 'card';
-    if (guardado.aviones.includes(key)) {
-      if (guardado.avion === key) btn.classList.add('selected');
-    } else {
+    
+    // Si no lo tienes, lo marcan como bloqueado
+    if (!guardado.aviones.includes(key)) {
       btn.classList.add('locked');
+      btn.innerHTML = `<strong>${item.nombre}</strong><span>🔒 Precio: ${item.precio}</span>`;
+    } else {
+      // Si lo tienes
+      if (guardado.avion === key) btn.classList.add('selected');
+      btn.innerHTML = `<strong>${item.nombre}</strong><span>${item.desc}</span>`;
+      btn.onclick = () => seleccionarItem('avion', key);
     }
-    btn.innerHTML = `<strong>${item.nombre}</strong><span>${item.desc}</span><span>Precio: ${item.precio}</span>`;
-    btn.onclick = () => comprarOrSeleccionar('avion', key, item);
     listaAviones.appendChild(btn);
-  });
+  }
 
-  Object.keys(ARMAS).forEach(key => {
+  // Renderizar Armas
+    // Renderizar Armas
+  for (let key in ARMAS) {
     const item = ARMAS[key];
     const btn = document.createElement('div');
     btn.className = 'card';
-    if (guardado.armas.includes(key)) {
-      if (guardado.arma === key) btn.classList.add('selected');
-    } else {
+
+    // Si no lo tienes, lo marcan como bloqueado
+    if (!guardado.armas.includes(key)) {
       btn.classList.add('locked');
+      btn.innerHTML = `<strong>${item.nombre}</strong><span>🔒 Precio: ${item.precio}</span>`;
+    } else {
+      // Si lo tienes
+      if (guardado.arma === key) btn.classList.add('selected');
+      btn.innerHTML = `<strong>${item.nombre}</strong><span>${item.desc || '+' + item.cadencia + ' cadencia'}</span>`;
+      btn.onclick = () => seleccionarItem('arma', key);
     }
-    btn.innerHTML = `<strong>${item.nombre}</strong><span>${item.desc || 'Cadencia: ' + item.cadencia}</span><span>Precio: ${item.precio}</span>`;
-    btn.onclick = () => comprarOrSeleccionar('arma', key, item);
     listaArmas.appendChild(btn);
-  });
-}
-
-function comprarOrSeleccionar(tipo, key, item) {
-  const lista = guardado[tipo + 's'];
-  const actual = guardado[tipo];
-  const tiene = lista.includes(key);
-
-  if (tiene && actual !== key) {
-    guardado[tipo] = key;
-    guardar();
-    renderizarTienda();
-    actualizarMonedas();
-  } else if (!tiene && guardado.tarjetas >= item.precio) {
-    guardado.tarjetas -= item.precio;
-    lista.push(key);
-    if (tipo === 'avion') guardado.avion = key;
-    else guardado.arma = key;
-    guardar();
-    renderizarTienda();
-    actualizarMonedas();
-  } else if (!tiene) {
-    alert('No tienes suficientes tarjetas para desbloquear esto.');
   }
 }
 
-document.getElementById('menu').classList.remove('oculto');
-document.getElementById('tienda').classList.add('oculto');
-document.getElementById('fin').classList.add('oculto');
-actualizarMonedas();
+function seleccionarItem(tipo, key) {
+  if (tipo === 'avion') {
+    guardado.avion = key;
+    cerrarGaraje();
+    // Opcional: recargar juego si ya está activo para aplicar cambios
+    if (juegoActivo && !gameover) {
+      iniciar();
+      loop();
+    }
+  } else if (tipo === 'arma') {
+    guardado.arma = key;
+    cerrarGaraje();
+    if (juegoActivo && !gameover) {
+      iniciar();
+      loop();
+    }
+  }
+}
+
+// Iniciar el bucle de renderizado del menú si es necesario (aunque el loop principal se encarga del juego)
+// El loop principal solo corre cuando juegoActivo es true.
+// Aquí no necesitamos un loop de UI, solo eventos.
+
 </script>
 </body>
 </html>
